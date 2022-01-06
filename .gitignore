@@ -1,0 +1,12 @@
+## IDE
+.idea
+
+## yolo && tensorrt && deepstream ##
+*.engine
+*.cfg
+*.pt
+*.wts
+
+# C++
+*.so
+*.o
