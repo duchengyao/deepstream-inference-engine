@@ -21,21 +21,29 @@
 
 * [ultralytics/yolov5](https://github.com/ultralytics/yolov5)
 
+### 1.3 GstRtspServer and introspection typelib
+
+apt-get 安装以下包 ，使用系统的 python 执行，不要尝试用 anaconda 或 pip 安装。
+
+* python3-gi 
+* python3-dev
+* python3-gst-1.0 
+* libgstrtspserver-1.0-0
+* gstreamer1.0-rtsp
+* python3-gi
+* python3-dev
+* python3-gst-1.0
+* libgirepository1.0-dev
+* gobject-introspection 
+* gir1.2-gst-rtsp-server-1.0
+
 ## 0x02 Quickstart
 
-1. 使用 gen_wts_yoloV5.py 将 `pt` 转换为 `wts` / `cfg` 文件。 `python3 gen_wts_yoloV5.py -w yolov5n.pt`
-2. 编译 `CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo`
-3. 运行 `deepstream-app -c deepstream_app_config.txt`
+**预处理**
 
-## 0x03 gen_wts_yoloV5.py
+* 使用 gen_wts_yoloV5.py 将 `pt` 转换为 `wts` & `cfg` 文件 `python3 gen_wts_yoloV5.py -w yolov5n.pt`
+* 编译 `CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo`
 
-> **NOTE**: For YOLOv5 P6 or custom models, check the gen_wts_yoloV5.py args and use them according to your model
-
-* Input weights (.pt) file path **(required)** `-w or --weights`
-* Input cfg (.yaml) file path `-c or --yaml`
-* Model width **(default = 640 / 1280 [P6])** `-mw or --width`
-* Model height **(default = 640 / 1280 [P6])** `-mh or --height`
-* Model channels **(default = 3)** `-mc or --channels`
-* P6 model `--p6`
-
-
+**运行**
+* 直接运行 deepstream: `cd config/official-yolov5n` && `deepstream-app -c deepstream_app_config.txt`
+* RTSP in RTSP out: `cd utlis` && `python3 deepstream_rtsp_in_rtsp_out.py -i rtsp://xxxxx`

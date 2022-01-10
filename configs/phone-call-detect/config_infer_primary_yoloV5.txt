@@ -6,9 +6,9 @@ net-scale-factor=0.0039215697906911373
 # 0=RGB, 1=BGR, 2=GRAYSCALE
 model-color-format=0
 # CFG
-custom-network-config=yolov5n.cfg
+custom-network-config=phone-call-detect.cfg
 # WTS
-model-file=yolov5n.wts
+model-file=phone-call-detect.wts
 # Generated TensorRT model (will be created if it doesn't exist)
 model-engine-file=model_b1_gpu0_fp32.engine
 # Model labels file

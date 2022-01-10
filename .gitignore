@@ -1,3 +1,7 @@
+## Python
+__pycache__
+.python-version
+
 ## IDE
 .idea
 
