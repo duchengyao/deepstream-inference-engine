@@ -39,11 +39,7 @@ apt-get 安装以下包 ，使用系统的 python 执行，不要尝试用 anaco
 
 ## 0x02 Quickstart
 
-**预处理**
-
 * 使用 gen_wts_yoloV5.py 将 `pt` 转换为 `wts` & `cfg` 文件 `python3 gen_wts_yoloV5.py -w yolov5n.pt`
 * 编译 `CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo`
-
-**运行**
-* 直接运行 deepstream: `cd config/official-yolov5n` && `deepstream-app -c deepstream_app_config.txt`
+* 生成 engine & 观看样例: `cd config/official-yolov5n` && `deepstream-app -c deepstream_app_config.txt`
 * RTSP in RTSP out: `cd utlis` && `python3 deepstream_rtsp_in_rtsp_out.py -i rtsp://xxxxx`

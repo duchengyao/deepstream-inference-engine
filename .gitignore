@@ -5,6 +5,9 @@ __pycache__
 ## IDE
 .idea
 
+## Datasets
+dataset
+
 ## yolo && tensorrt && deepstream ##
 *.engine
 *.cfg
