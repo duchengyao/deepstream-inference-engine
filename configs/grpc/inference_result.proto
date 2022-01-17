@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.dubhe.inference.grpc";
+option java_outer_classname = "InferenceCheckpointProto";
+option objc_class_prefix = "";
+
+service InferenceCheckpointService {
+  rpc phoneDetectionCheckpoint (InferencePhoneDetectionCheckpointRequest) returns (InferencePhoneDetectionCheckpointResponse) {}
+}
+
+message InferencePhoneDetectionCheckpointRequest {
+  string code = 1;
+  string img = 2;
+  string result = 3;
+  string detail = 4;
+  int32 time = 5;
+}
+
+message InferencePhoneDetectionCheckpointResponse {
+  int32 code = 1;
+  string msg = 2;
+}

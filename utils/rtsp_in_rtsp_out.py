@@ -1,24 +1,13 @@
 #!/usr/bin/env python3
 
-################################################################################
-# SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-################################################################################
 import sys
 
-sys.path.append("../")
+sys.path.append("../")  # noqa: E402
+
+import os
+import numpy as np
+import cv2
+
 import pyds
 from common.bus_call import bus_call
 from common.is_aarch_64 import is_aarch64
@@ -28,35 +17,33 @@ import time
 from ctypes import *
 import gi
 
-gi.require_version("Gst", "1.0")
-gi.require_version("GstRtspServer", "1.0")
+gi.require_version("Gst", "1.0")  # noqa: E402
+gi.require_version("GstRtspServer", "1.0")  # noqa: E402
+
 from gi.repository import GObject, Gst, GstRtspServer, GLib
 import configparser
 
 import argparse
 
 from common.FPS import GETFPS
+from grpc_client import GrpcClient
 
 fps_streams = {}
+saved_count = {}
+frame_count = {}
+frame_call = {}
 
-MAX_DISPLAY_LEN = 64
-PGIE_CLASS_ID_VEHICLE = 0
-PGIE_CLASS_ID_BICYCLE = 1
-PGIE_CLASS_ID_PERSON = 2
-PGIE_CLASS_ID_ROADSIGN = 3
-MUXER_OUTPUT_WIDTH = 1920
-MUXER_OUTPUT_HEIGHT = 1080
-MUXER_BATCH_TIMEOUT_USEC = 4000000
+PGIE_CLASS_ID_PERSON = 0
+PGIE_CLASS_ID_CALL = 1
 TILED_OUTPUT_WIDTH = 1280
 TILED_OUTPUT_HEIGHT = 720
-GST_CAPS_FEATURES_NVMM = "memory:NVMM"
-OSD_PROCESS_MODE = 0
-OSD_DISPLAY_TEXT = 0
-pgie_classes_str = ["Vehicle", "TwoWheeler", "Person", "RoadSign"]
-
+MIN_CONFIDENCE = 0
+MAX_CONFIDENCE = 1
 
 # tiler_sink_pad_buffer_probe  will extract metadata received on OSD sink pad
 # and update params for drawing rectangle, object information etc.
+
+grpc_client = GrpcClient()
 
 
 def tiler_src_pad_buffer_probe(pad, info, u_data):
@@ -71,6 +58,7 @@ def tiler_src_pad_buffer_probe(pad, info, u_data):
     # Note that pyds.gst_buffer_get_nvds_batch_meta() expects the
     # C address of gst_buffer as input, which is obtained with hash(gst_buffer)
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(gst_buffer))
+
     l_frame = batch_meta.frame_meta_list
     while l_frame is not None:
         try:
@@ -86,11 +74,11 @@ def tiler_src_pad_buffer_probe(pad, info, u_data):
         frame_number = frame_meta.frame_num
         l_obj = frame_meta.obj_meta_list
         num_rects = frame_meta.num_obj_meta
+        is_first_obj = True
+        draw_image = False
         obj_counter = {
-            PGIE_CLASS_ID_VEHICLE: 0,
             PGIE_CLASS_ID_PERSON: 0,
-            PGIE_CLASS_ID_BICYCLE: 0,
-            PGIE_CLASS_ID_ROADSIGN: 0,
+            PGIE_CLASS_ID_CALL: 0,
         }
         while l_obj is not None:
             try:
@@ -98,25 +86,29 @@ def tiler_src_pad_buffer_probe(pad, info, u_data):
                 obj_meta = pyds.NvDsObjectMeta.cast(l_obj.data)
             except StopIteration:
                 break
-            obj_counter[obj_meta.class_id] += 1
+            if obj_meta.class_id == 1 and frame_number % 30 == 0:
+                obj_counter[obj_meta.class_id] += 1
+                saved_count["stream_{}".format(frame_meta.pad_index)] += 1
+                try:
+                    grpc_client.run()
+                except:
+                    print("grpc failed.")
+
             try:
                 l_obj = l_obj.next
             except StopIteration:
                 break
 
-        print(
-            "Frame Number=",
-            frame_number,
-            "Number of Objects=",
-            num_rects,
-            "Vehicle_count=",
-            obj_counter[PGIE_CLASS_ID_VEHICLE],
-            "Person_count=",
-            obj_counter[PGIE_CLASS_ID_PERSON],
-        )
+        # print(
+        #     "Frame Number=", frame_number,
+        #     "Number of Objects=", num_rects,
+        #     "Person_count=", obj_counter[PGIE_CLASS_ID_PERSON],
+        #     "Call_count=", obj_counter[PGIE_CLASS_ID_CALL],
+        # )
 
         # Get frame rate through this probe
         fps_streams["stream{0}".format(frame_meta.pad_index)].get_fps()
+        saved_count["stream_{}".format(frame_meta.pad_index)] += 1
         try:
             l_frame = l_frame.next
         except StopIteration:
@@ -204,6 +196,11 @@ def main(args):
         fps_streams["stream{0}".format(i)] = GETFPS(i)
     number_sources = len(args)
 
+    global folder_name
+    folder_name = "results"
+    if not os.path.exists(folder_name):
+        os.mkdir(folder_name)
+
     # Standard GStreamer initialization
     GObject.threads_init()
     Gst.init(None)
@@ -225,6 +222,12 @@ def main(args):
 
     pipeline.add(streammux)
     for i in range(number_sources):
+        if not os.path.exists(folder_name + "/stream_" + str(i)):
+            os.mkdir(folder_name + "/stream_" + str(i))
+        frame_count["stream_" + str(i)] = 0
+        saved_count["stream_" + str(i)] = 0
+        frame_call["stream_" + str(i)] = 0
+
         print("Creating source_bin ", i, " \n ")
         uri_name = args[i]
         if uri_name.find("rtsp://") == 0:
@@ -316,6 +319,8 @@ def main(args):
     if gie == "nvinfer":
         pgie.set_property("config-file-path",
                           "../configs/phone-call-detect/config_infer_primary_yoloV5.txt")
+        # pgie.set_property("config-file-path",
+        #                   "../configs/official-yolov5n/config_infer_primary_yoloV5.txt")
 
     else:
         assert False
@@ -368,6 +373,13 @@ def main(args):
     bus.add_signal_watch()
     bus.connect("message", bus_call, loop)
 
+    tiler_sink_pad = tiler.get_static_pad("sink")
+    if not tiler_sink_pad:
+        sys.stderr.write(" Unable to get src pad \n")
+    else:
+        tiler_sink_pad.add_probe(Gst.PadProbeType.BUFFER, tiler_src_pad_buffer_probe, 0)
+        sys.stderr.write(" !!!!!!!!!!!!!!!!!!!!!! to get src pad \n")
+
     # Start streaming
     rtsp_port_num = 8554
 
@@ -417,6 +429,7 @@ def parse_args():
         parser.print_help(sys.stderr)
         sys.exit(1)
     args = parser.parse_args()
+
     global codec
     global bitrate
     global stream_path

@@ -17,3 +17,7 @@ dataset
 # C++
 *.so
 *.o
+
+# gRPC
+*pb2.py
+*pb2_grpc.py

@@ -9,7 +9,8 @@ from utils.torch_utils import select_device
 
 def parse_args():
     parser = argparse.ArgumentParser(description="PyTorch YOLOv5 conversion")
-    parser.add_argument("-w", "--weights", required=True, help="Input weights (.pt) file path (required)")
+    parser.add_argument("-w", "--weights", required=True,
+                        help="Input weights (.pt) file path (required)")
     parser.add_argument("-c", "--yaml", help="Input cfg (.yaml) file path")
     parser.add_argument("-mw", "--width", help="Model width (default = 640 / 1280 [P6])")
     parser.add_argument("-mh", "--height", help="Model height (default = 640 / 1280 [P6])")
@@ -114,7 +115,7 @@ with open(cfg_file, "w") as c:
         num = 0
         detections = []
         layers = []
-        f = yaml.load(f,Loader=yaml.FullLoader)
+        f = yaml.load(f, Loader=yaml.FullLoader)
         c.write("[net]\n")
         c.write("width=%d\n" % model_width)
         c.write("height=%d\n" % model_height)
