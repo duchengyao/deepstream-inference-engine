@@ -76,11 +76,10 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 
 ## 0x02 Build
 
-`CUDA_VER=11.4 make -C nvdsinfer_custom_impl_Yolo`
+`CUDA_VER=11.4 make -C thirdparty/nvdsinfer_custom_impl_Yolo`
 
-## 0x02 Quickstart
+## 0x03 Quickstart
 
-* 生成 engine & 观看样例: `cd config/official-yolov5n` && `deepstream-app -c deepstream_app_config.txt`
 * RTSP in RTSP out: `cd utlis` && `python3 deepstream_rtsp_in_rtsp_out.py -i rtsp://xxxxx`
 
 ## 0xEE TODO

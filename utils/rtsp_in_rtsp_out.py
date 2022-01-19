@@ -1,31 +1,19 @@
 #!/usr/bin/env python3
-
 import sys
 
 sys.path.append("../")  # noqa: E402
 
+import argparse
+import math
 import os
-import numpy as np
-import cv2
 
 import pyds
-from common.bus_call import bus_call
-from common.is_aarch_64 import is_aarch64
-import platform
-import math
-import time
-from ctypes import *
-import gi
-
-gi.require_version("Gst", "1.0")  # noqa: E402
-gi.require_version("GstRtspServer", "1.0")  # noqa: E402
 
 from gi.repository import GObject, Gst, GstRtspServer, GLib
-import configparser
 
-import argparse
-
+from common.bus_call import bus_call
 from common.FPS import GETFPS
+from common.is_aarch_64 import is_aarch64
 from grpc_client import GrpcClient
 
 fps_streams = {}
@@ -317,24 +305,18 @@ def main(args):
     streammux.set_property("batched-push-timeout", 4000000)
 
     if gie == "nvinfer":
-        pgie.set_property("config-file-path",
-                          "../configs/phone-call-detect/config_infer_primary_yoloV5.txt")
-        # pgie.set_property("config-file-path",
-        #                   "../configs/official-yolov5n/config_infer_primary_yoloV5.txt")
-
+        pgie.set_property(
+            "config-file-path",
+            "../configs/phone-call-detect/config_infer_primary_yoloV5.txt")
     else:
         assert False
-        # TODO
-        # pgie.set_property("config-file-path", "dstest1_pgie_inferserver_config.txt")
+        # TODO: support inferserver.
 
     pgie_batch_size = pgie.get_property("batch-size")
     if pgie_batch_size != number_sources:
         print(
-            "WARNING: Overriding infer-config batch-size",
-            pgie_batch_size,
-            " with number of sources ",
-            number_sources,
-            " \n",
+            "WARNING: Overriding infer-config batch-size", pgie_batch_size,
+            " with number of sources ", number_sources, " \n",
         )
         pgie.set_property("batch-size", number_sources)
 
@@ -377,7 +359,8 @@ def main(args):
     if not tiler_sink_pad:
         sys.stderr.write(" Unable to get src pad \n")
     else:
-        tiler_sink_pad.add_probe(Gst.PadProbeType.BUFFER, tiler_src_pad_buffer_probe, 0)
+        tiler_sink_pad.add_probe(Gst.PadProbeType.BUFFER,
+                                 tiler_src_pad_buffer_probe, 0)
         sys.stderr.write(" !!!!!!!!!!!!!!!!!!!!!! to get src pad \n")
 
     # Start streaming
@@ -389,14 +372,17 @@ def main(args):
 
     factory = GstRtspServer.RTSPMediaFactory.new()
     factory.set_launch(
-        '( udpsrc name=pay0 port=%d buffer-size=524288 caps="application/x-rtp, media=video, clock-rate=90000, encoding-name=(string)%s, payload=96 " )'
+        '( udpsrc name=pay0 port=%d buffer-size=524288 '
+        'caps="application/x-rtp, media=video, clock-rate=90000, '
+        'encoding-name=(string)%s, payload=96 " )'
         % (updsink_port_num, codec)
     )
     factory.set_shared(True)
     server.get_mount_points().add_factory("/ds-test", factory)
 
     print(
-        "\n *** DeepStream: Launched RTSP Streaming at rtsp://localhost:%d/ds-test ***\n\n"
+        "\n *** DeepStream: Launched RTSP Streaming at "
+        "rtsp://localhost:%d/ds-test ***\n\n"
         % rtsp_port_num
     )
 
@@ -412,18 +398,25 @@ def main(args):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='RTSP Output Sample Application Help ')
-    parser.add_argument("-i", "--input",
-                        help="Path to input H264 elementry stream", nargs="+", default=["a"],
-                        required=True)
-    parser.add_argument("-g", "--gie", default="nvinfer",
-                        help="choose GPU inference engine type nvinfer or nvinferserver , default=nvinfer",
-                        choices=['nvinfer', 'nvinferserver'])
-    parser.add_argument("-c", "--codec", default="H264",
-                        help="RTSP Streaming Codec H264/H265 , default=H264",
-                        choices=['H264', 'H265'])
-    parser.add_argument("-b", "--bitrate", default=4000000,
-                        help="Set the encoding bitrate ", type=int)
+    parser = argparse.ArgumentParser(
+        description='RTSP Output Sample Application Help ')
+    parser.add_argument(
+        "-i", "--input",
+        help="Path to input H264 elementry stream", nargs="+",
+        default=["a"],
+        required=True)
+    parser.add_argument(
+        "-g", "--gie", default="nvinfer",
+        help="choose GPU inference engine type nvinfer or nvinferserver , "
+             "default=nvinfer",
+        choices=['nvinfer', 'nvinferserver'])
+    parser.add_argument(
+        "-c", "--codec", default="H264",
+        help="RTSP Streaming Codec H264/H265 , default=H264",
+        choices=['H264', 'H265'])
+    parser.add_argument(
+        "-b", "--bitrate", default=4000000,
+        help="Set the encoding bitrate ", type=int)
     # Check input arguments
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)

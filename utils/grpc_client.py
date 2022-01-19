@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("../")
+sys.path.append("../")  # noqa: E402
 
 import time
 
@@ -22,7 +22,7 @@ class GrpcClient:
                           detail="{ \"position\": [1,2,3,4] }",
                           time=int(time.time()))
         response = self.stub.phoneDetectionCheckpoint(request)
-        print("Get grpc response ",response)
+        print("Get grpc response ", response)
         return response
 
 
