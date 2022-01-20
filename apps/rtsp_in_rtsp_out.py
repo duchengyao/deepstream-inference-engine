@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+import gi
 import sys
 
 sys.path.append("../")  # noqa: E402
+gi.require_version('Gst', '1.0')  # noqa: E402
+gi.require_version('GstRtspServer', '1.0')  # noqa: E402
 
 import argparse
 import math
@@ -13,8 +16,8 @@ from gi.repository import GObject, Gst, GstRtspServer, GLib
 
 from common.bus_call import bus_call
 from common.FPS import GETFPS
+from common.grpc_client import GrpcClient
 from common.is_aarch_64 import is_aarch64
-from grpc_client import GrpcClient
 
 fps_streams = {}
 saved_count = {}
@@ -307,7 +310,9 @@ def main(args):
     if gie == "nvinfer":
         pgie.set_property(
             "config-file-path",
-            "../configs/phone-call-detect/config_infer_primary_yoloV5.txt")
+            # "../configs/phone-call-detect/config_infer_primary_yoloV5.txt"
+            "../configs/official-yolov5n/config_infer_primary_yoloV5.txt"
+        )
     else:
         assert False
         # TODO: support inferserver.
