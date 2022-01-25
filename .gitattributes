@@ -1,3 +1,5 @@
 configs/official-yolov5n/yolov5n.pt filter=lfs diff=lfs merge=lfs -text
 configs/phone-call-detect/phone-call-detect.pt filter=lfs diff=lfs merge=lfs -text
 dataset/test-phone-call.mp4 filter=lfs diff=lfs merge=lfs -text
+dataset/sample_720p.mp4 filter=lfs diff=lfs merge=lfs -text
+dataset/sample_qHD.mp4 filter=lfs diff=lfs merge=lfs -text
