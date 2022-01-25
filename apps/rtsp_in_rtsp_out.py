@@ -5,14 +5,17 @@ import sys
 sys.path.append("../")  # noqa: E402
 gi.require_version('Gst', '1.0')  # noqa: E402
 gi.require_version('GstRtspServer', '1.0')  # noqa: E402
+gi.require_version("GstVideo", "1.0")  # noqa: E402
 
 import argparse
+import cv2
 import math
+import numpy as np
 import os
 
 import pyds
 
-from gi.repository import GObject, Gst, GstRtspServer, GLib
+from gi.repository import GObject, Gst, GstRtspServer, GLib, GstVideo
 
 from common.bus_call import bus_call
 from common.FPS import GETFPS
@@ -38,6 +41,8 @@ grpc_client = GrpcClient()
 
 
 def tiler_src_pad_buffer_probe(pad, info, u_data):
+    """pad probe callback"""
+
     frame_number = 0
     num_rects = 0
     gst_buffer = info.get_buffer()
@@ -51,6 +56,7 @@ def tiler_src_pad_buffer_probe(pad, info, u_data):
     batch_meta = pyds.gst_buffer_get_nvds_batch_meta(hash(gst_buffer))
 
     l_frame = batch_meta.frame_meta_list
+
     while l_frame is not None:
         try:
             # Note that l_frame.data needs a cast to pyds.NvDsFrameMeta
@@ -78,12 +84,26 @@ def tiler_src_pad_buffer_probe(pad, info, u_data):
             except StopIteration:
                 break
             if obj_meta.class_id == 1 and frame_number % 30 == 0:
+                if is_first_obj:
+                    is_first_obj = False
+                    # Getting Image data using nvbufsurface
+                    # the input should be address of buffer and batch_id
+                    n_frame = pyds.get_nvds_buf_surface(hash(gst_buffer), frame_meta.batch_id)
+                    # convert python array into numy array format.
+                    n_frame = draw_bounding_boxes(n_frame, obj_meta, obj_meta.confidence)
+                    frame_copy = np.array(n_frame, copy=True, order='C')
+                    # covert the array into cv2 default color format
+                    frame_copy = cv2.cvtColor(frame_copy, cv2.COLOR_RGBA2BGR)
+                    try:
+                        # cv2.imwrite("a.png", frame_copy)
+                        grpc_client.send_image(frame_copy)
+                        print("send image.")
+
+                    except Exception as e:
+                        print("grpc failed: ", e)
+
                 obj_counter[obj_meta.class_id] += 1
                 saved_count["stream_{}".format(frame_meta.pad_index)] += 1
-                try:
-                    grpc_client.run()
-                except:
-                    print("grpc failed.")
 
             try:
                 l_obj = l_obj.next
@@ -106,6 +126,34 @@ def tiler_src_pad_buffer_probe(pad, info, u_data):
             break
 
     return Gst.PadProbeReturn.OK
+
+
+def draw_bounding_boxes(image, obj_meta, confidence):
+    confidence = '{0:.2f}'.format(confidence)
+    rect_params = obj_meta.rect_params
+    top = int(rect_params.top)
+    left = int(rect_params.left)
+    width = int(rect_params.width)
+    height = int(rect_params.height)
+    obj_name = "class_name"  # pgie_classes_str[obj_meta.class_id]
+
+    color = (0, 0, 255, 0)
+    image = cv2.rectangle(image,
+                          (left, top),
+                          (left + width, top + height),
+                          color,
+                          2,
+                          cv2.LINE_4)
+
+    # Note that on some systems cv2.putText erroneously draws horizontal lines across the image
+    image = cv2.putText(image,
+                        obj_name + ',C=' + str(confidence),
+                        (left - 10, top - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5,
+                        color,
+                        2)
+    return image
 
 
 def cb_newpad(decodebin, decoder_src_pad, data):
@@ -187,10 +235,6 @@ def main(args):
         fps_streams["stream{0}".format(i)] = GETFPS(i)
     number_sources = len(args)
 
-    global folder_name
-    folder_name = "results"
-    if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
 
     # Standard GStreamer initialization
     GObject.threads_init()
@@ -213,8 +257,6 @@ def main(args):
 
     pipeline.add(streammux)
     for i in range(number_sources):
-        if not os.path.exists(folder_name + "/stream_" + str(i)):
-            os.mkdir(folder_name + "/stream_" + str(i))
         frame_count["stream_" + str(i)] = 0
         saved_count["stream_" + str(i)] = 0
         frame_call["stream_" + str(i)] = 0
@@ -325,6 +367,14 @@ def main(args):
         )
         pgie.set_property("batch-size", number_sources)
 
+    if not is_aarch64():
+        # Use CUDA unified memory in the pipeline so frames
+        # can be easily accessed on CPU in Python.
+        mem_type = int(pyds.NVBUF_MEM_CUDA_UNIFIED)
+        streammux.set_property("nvbuf-memory-type", mem_type)
+        nvvidconv.set_property("nvbuf-memory-type", mem_type)
+        tiler.set_property("nvbuf-memory-type", mem_type)
+
     print("Adding elements to Pipeline \n")
     tiler_rows = int(math.sqrt(number_sources))
     tiler_columns = int(math.ceil((1.0 * number_sources) / tiler_rows))
@@ -366,7 +416,6 @@ def main(args):
     else:
         tiler_sink_pad.add_probe(Gst.PadProbeType.BUFFER,
                                  tiler_src_pad_buffer_probe, 0)
-        sys.stderr.write(" !!!!!!!!!!!!!!!!!!!!!! to get src pad \n")
 
     # Start streaming
     rtsp_port_num = 8554

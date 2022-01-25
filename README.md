@@ -81,9 +81,3 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 ## 0x03 Quickstart
 
 * RTSP in RTSP out: `cd utlis` && `python3 deepstream_rtsp_in_rtsp_out.py -i rtsp://xxxxx`
-
-## 0xEE TODO
-
-* [ ] Publish live video stream to RTMP Server. [link1](https://github.com/UranKhatolaaa/deepstream-examples)
-  [link2](https://forums.developer.nvidia.com/t/integrate-rtmp-with-deepstream/186913/5)
-

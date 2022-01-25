@@ -36,8 +36,8 @@ class GstreamerRtspServer:
         self.rtspServer.props.service = "8550"
 
         mount_points = self.rtspServer.get_mount_points()
-        movie_list = ["dataset/sample_720p.mp4",
-                      "dataset/sample_qHD.mp4"]
+        movie_list = ["../dataset/sample_720p.mp4",
+                      "../dataset/sample_qHD.mp4"]
         for i in range(len(movie_list)):
             factory = TestRtspMediaFactory(movie_list[i])
             factory.set_shared(True)

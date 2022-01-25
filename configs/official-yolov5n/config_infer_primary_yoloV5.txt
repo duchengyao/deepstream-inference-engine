@@ -6,7 +6,7 @@ net-scale-factor=0.0039215697906911373
 # 0=RGB, 1=BGR, 2=GRAYSCALE
 model-color-format=0
 # CFG
-custom-network-config=yolov5n.cfg
+custom-network-config=../configs/official-yolov5n/yolov5n.cfg
 # WTS
 model-file=yolov5n.wts
 # Generated TensorRT model (will be created if it doesn't exist)
@@ -19,9 +19,6 @@ batch-size=1
 network-mode=0
 # Number of classes in label file
 num-detected-classes=80
-
-
-
 
 interval=0
 gie-unique-id=1
