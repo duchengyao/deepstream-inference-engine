@@ -80,4 +80,4 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 
 ## 0x03 Quickstart
 
-* RTSP in RTSP out: `cd utlis` && `python3 deepstream_rtsp_in_rtsp_out.py -i rtsp://xxxxx`
+* RTSP in RTSP out: `python3 tsif.py -i rtsp://xxxxx`
