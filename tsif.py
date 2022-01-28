@@ -6,9 +6,9 @@ gi.require_version('Gst', '1.0')  # noqa: E402
 gi.require_version('GstRtspServer', '1.0')  # noqa: E402
 gi.require_version("GstVideo", "1.0")  # noqa: E402
 from gi.repository import GObject, Gst, GstRtspServer, GLib, GstVideo
-from common.ds_utils import bus_call, is_aarch64, GETFPS
-from common.draw_bounding_boxes import draw_bounding_boxes
+from common.ds_utils import bus_call, is_aarch64, GetFPS
 from common.create_pipeline import create_pipeline
+from common.gs_utils import create_source_bin
 
 frame_count = {}
 frame_call = {}
@@ -18,6 +18,8 @@ MIN_CONFIDENCE = 0
 MAX_CONFIDENCE = 1
 RTSP_PORT_NUM = 8554
 UPDSINK_PORT_NUM = 5400
+
+max_source_id = -1
 
 
 def parse_args():
@@ -49,7 +51,37 @@ def parse_args():
     return args
 
 
-def main(args):
+def add_source(uri_name):
+    global max_source_id
+    print("Creating source_bin ", uri_name, " \n ")
+    max_source_id += 1
+    source_bin = create_source_bin(max_source_id, uri_name)
+    if not source_bin:
+        sys.stderr.write("Unable to create source bin \n")
+    pipeline.add(source_bin)
+    padname = "sink_%u" % max_source_id
+    sinkpad = streammux.get_request_pad(padname)
+    if not sinkpad:
+        sys.stderr.write("Unable to create sink pad bin \n")
+    srcpad = source_bin.get_static_pad("src")
+    if not srcpad:
+        sys.stderr.write("Unable to create src pad bin \n")
+    srcpad.link(sinkpad)
+    source_bin.set_state(Gst.State.PLAYING)
+
+
+def main():
+    args = parse_args()
+
+    fps_streams = {}
+    number_sources = len(args.input)
+    for i in range(0, number_sources):
+        fps_streams["stream{0}".format(i)] = GetFPS(i)
+
+    # Standard GStreamer initialization
+    GObject.threads_init()
+    Gst.init(None)
+
     # Check input arguments
     # for i in range(0, len(args.input)):
     #     fps_streams["stream{0}".format(i)] = GETFPS(i)
@@ -59,7 +91,10 @@ def main(args):
     GObject.threads_init()
     Gst.init(None)
 
-    pipeline, loop = create_pipeline(args, number_sources, UPDSINK_PORT_NUM)
+    global pipeline, loop, streammux
+    pipeline, loop, streammux = create_pipeline(
+        args, number_sources, UPDSINK_PORT_NUM,
+        "configs/official-yolov5n/config_infer_primary_yoloV5.txt")
 
     # Start streaming
     server = GstRtspServer.RTSPServer.new()
@@ -85,30 +120,20 @@ def main(args):
     # start play back and listen to events
     print("Starting pipeline \n")
     pipeline.set_state(Gst.State.PLAYING)
+
+    GObject.timeout_add_seconds(1, add_source, args.input[0])
+    GObject.timeout_add_seconds(5, add_source, args.input[0])
+    GObject.timeout_add_seconds(8, add_source, args.input[0])
+    GObject.timeout_add_seconds(11, add_source, args.input[0])
+
     try:
         loop.run()
     except BaseException:
         pass
+
     # cleanup
     pipeline.set_state(Gst.State.NULL)
 
 
 if __name__ == '__main__':
-    args = parse_args()
-
-    fps_streams = {}
-
-    number_sources = len(args.input)
-    for i in range(0, number_sources):
-        fps_streams["stream{0}".format(i)] = GETFPS(i)
-
-    # Standard GStreamer initialization
-    GObject.threads_init()
-    Gst.init(None)
-
-    gie = args.gie
-    codec = args.codec
-    bitrate = args.bitrate
-    stream_path = args.input
-
-    sys.exit(main(args))
+    sys.exit(main())

@@ -1,18 +1,14 @@
-import sys
-
-sys.path.append("../")  # noqa: E402
-
 import base64
 import cv2
 import grpc
 import time
 
-import configs.grpc.inference_result_pb2 as bp2
-import configs.grpc.inference_result_pb2_grpc as pb2_grpc
-
 
 class GrpcClient:
     def __init__(self, address):
+        import configs.grpc.inference_result_pb2 as bp2
+        import configs.grpc.inference_result_pb2_grpc as pb2_grpc
+
         channel = grpc.insecure_channel(address)
         self.stub = pb2_grpc.InferenceCheckpointServiceStub(channel)
         self.request = bp2.InferencePhoneDetectionCheckpointRequest
@@ -33,7 +29,10 @@ class GrpcClient:
 
 
 if __name__ == '__main__':
+    import sys
     import numpy as np
+
+    sys.path.append("../")
 
     grpc_client = GrpcClient('10.5.24.131:50051')
 

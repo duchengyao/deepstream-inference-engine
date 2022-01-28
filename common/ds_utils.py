@@ -12,7 +12,7 @@ from gi.repository import GObject, Gst
 sys.path.append('/opt/nvidia/deepstream/deepstream/lib')
 
 
-class GETFPS:
+class GetFPS:
     def __init__(self, stream_id):
         self.start_time = time.time()
         self.is_first = True

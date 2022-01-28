@@ -16,7 +16,7 @@ TILED_OUTPUT_WIDTH = 1280
 TILED_OUTPUT_HEIGHT = 720
 
 
-def create_pipeline(args, number_sources, updsink_port_num):
+def create_pipeline(args, number_sources, updsink_port_num, config_file_path):
     # Create gstreamer elements */
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
@@ -33,27 +33,7 @@ def create_pipeline(args, number_sources, updsink_port_num):
         sys.stderr.write(" Unable to create NvStreamMux \n")
 
     pipeline.add(streammux)
-    for i in range(number_sources):
-        frame_count["stream_" + str(i)] = 0
-        saved_count["stream_" + str(i)] = 0
-        frame_call["stream_" + str(i)] = 0
 
-        print("Creating source_bin ", i, " \n ")
-        uri_name = args.input[i]
-        if uri_name.find("rtsp://") == 0:
-            is_live = True
-        source_bin = create_source_bin(i, uri_name)
-        if not source_bin:
-            sys.stderr.write("Unable to create source bin \n")
-        pipeline.add(source_bin)
-        padname = "sink_%u" % i
-        sinkpad = streammux.get_request_pad(padname)
-        if not sinkpad:
-            sys.stderr.write("Unable to create sink pad bin \n")
-        srcpad = source_bin.get_static_pad("src")
-        if not srcpad:
-            sys.stderr.write("Unable to create src pad bin \n")
-        srcpad.link(sinkpad)
 
     print("Creating Pgie \n ")
     if args.gie == "nvinfer":
@@ -86,13 +66,15 @@ def create_pipeline(args, number_sources, updsink_port_num):
     )
 
     # Make the encoder
-    encoder = None
     if args.codec == "H264":
         encoder = Gst.ElementFactory.make("nvv4l2h264enc", "encoder")
         print("Creating H264 Encoder")
     elif args.codec == "H265":
         encoder = Gst.ElementFactory.make("nvv4l2h265enc", "encoder")
         print("Creating H265 Encoder")
+    else:
+        encoder = None
+
     if not encoder:
         sys.stderr.write(" Unable to create encoder")
     encoder.set_property("bitrate", args.bitrate)
@@ -102,13 +84,14 @@ def create_pipeline(args, number_sources, updsink_port_num):
         encoder.set_property("bufapi-version", 1)
 
     # Make the payload-encode video into RTP packets
-    rtppay = None
     if args.codec == "H264":
         rtppay = Gst.ElementFactory.make("rtph264pay", "rtppay")
         print("Creating H264 rtppay")
     elif args.codec == "H265":
         rtppay = Gst.ElementFactory.make("rtph265pay", "rtppay")
         print("Creating H265 rtppay")
+    else:
+        rtppay = None
     if not rtppay:
         sys.stderr.write(" Unable to create rtppay")
 
@@ -128,11 +111,7 @@ def create_pipeline(args, number_sources, updsink_port_num):
     streammux.set_property("batched-push-timeout", 4000000)
 
     if args.gie == "nvinfer":
-        pgie.set_property(
-            "config-file-path",
-            # "../configs/phone-call-detect/config_infer_primary_yoloV5.txt"
-            "configs/official-yolov5n/config_infer_primary_yoloV5.txt"  # TODO
-        )
+        pgie.set_property("config-file-path", config_file_path)
     else:
         assert False
         # TODO: support inferserver.
@@ -154,7 +133,7 @@ def create_pipeline(args, number_sources, updsink_port_num):
         tiler.set_property("nvbuf-memory-type", mem_type)
 
     print("Adding elements to Pipeline \n")
-    tiler_rows = int(math.sqrt(number_sources))
+    tiler_rows = 4  # int(math.sqrt(number_sources))
     tiler_columns = int(math.ceil((1.0 * number_sources) / tiler_rows))
     tiler.set_property("rows", tiler_rows)
     tiler.set_property("columns", tiler_columns)
@@ -195,4 +174,4 @@ def create_pipeline(args, number_sources, updsink_port_num):
         tiler_sink_pad.add_probe(Gst.PadProbeType.BUFFER,
                                  tiler_src_pad_buffer_probe, 0)
 
-    return pipeline, loop
+    return pipeline, loop, streammux
