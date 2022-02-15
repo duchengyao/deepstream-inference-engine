@@ -18,7 +18,7 @@ MIN_CONFIDENCE = 0
 MAX_CONFIDENCE = 1
 RTSP_PORT_NUM = 8554
 UPDSINK_PORT_NUM = 5400
-
+BATCH_SIZE = 16
 max_source_id = -1
 
 
@@ -87,10 +87,6 @@ def main():
     #     fps_streams["stream{0}".format(i)] = GETFPS(i)
     number_sources = len(args.input)
 
-    # Standard GStreamer initialization
-    GObject.threads_init()
-    Gst.init(None)
-
     global pipeline, loop, streammux
     pipeline, loop, streammux = create_pipeline(
         args, number_sources, UPDSINK_PORT_NUM,
@@ -121,10 +117,8 @@ def main():
     print("Starting pipeline \n")
     pipeline.set_state(Gst.State.PLAYING)
 
-    GObject.timeout_add_seconds(1, add_source, args.input[0])
-    GObject.timeout_add_seconds(5, add_source, args.input[0])
-    GObject.timeout_add_seconds(8, add_source, args.input[0])
-    GObject.timeout_add_seconds(11, add_source, args.input[0])
+    for i in range(len(args.input)):
+        GObject.timeout_add_seconds(i + 1, add_source, args.input[i])
 
     try:
         loop.run()

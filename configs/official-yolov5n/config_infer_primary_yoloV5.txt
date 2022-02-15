@@ -6,17 +6,17 @@ net-scale-factor=0.0039215697906911373
 # 0=RGB, 1=BGR, 2=GRAYSCALE
 model-color-format=0
 # CFG
-custom-network-config=../configs/official-yolov5n/yolov5n.cfg
+custom-network-config=configs/official-yolov5n/yolov5n.cfg
 # WTS
 model-file=yolov5n.wts
 # Generated TensorRT model (will be created if it doesn't exist)
-model-engine-file=model_b1_gpu0_fp32.engine
+model-engine-file=model_b16_gpu0_fp16.engine
 # Model labels file
 labelfile-path=labels.txt
 # Batch size
-batch-size=1
+batch-size=16
 # 0=FP32, 1=INT8, 2=FP16 mode
-network-mode=0
+network-mode=2
 # Number of classes in label file
 num-detected-classes=80
 

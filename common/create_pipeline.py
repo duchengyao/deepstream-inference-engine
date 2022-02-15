@@ -16,7 +16,7 @@ TILED_OUTPUT_WIDTH = 1280
 TILED_OUTPUT_HEIGHT = 720
 
 
-def create_pipeline(args, number_sources, updsink_port_num, config_file_path):
+def create_pipeline(args, number_sources, updsink_port_num, batch_size, config_file_path):
     # Create gstreamer elements */
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
@@ -33,7 +33,6 @@ def create_pipeline(args, number_sources, updsink_port_num, config_file_path):
         sys.stderr.write(" Unable to create NvStreamMux \n")
 
     pipeline.add(streammux)
-
 
     print("Creating Pgie \n ")
     if args.gie == "nvinfer":
@@ -107,8 +106,8 @@ def create_pipeline(args, number_sources, updsink_port_num, config_file_path):
 
     streammux.set_property("width", 1920)
     streammux.set_property("height", 1080)
-    streammux.set_property("batch-size", 1)
-    streammux.set_property("batched-push-timeout", 4000000)
+    streammux.set_property("batch-size", batch_size)
+    streammux.set_property("batched-push-timeout", 25000)
 
     if args.gie == "nvinfer":
         pgie.set_property("config-file-path", config_file_path)
@@ -117,12 +116,12 @@ def create_pipeline(args, number_sources, updsink_port_num, config_file_path):
         # TODO: support inferserver.
 
     pgie_batch_size = pgie.get_property("batch-size")
-    if pgie_batch_size != number_sources:
+    if pgie_batch_size != batch_size:
         print(
             "WARNING: Overriding infer-config batch-size", pgie_batch_size,
-            " with number of sources ", number_sources, " \n",
+            " with number of sources ", batch_size, " \n",
         )
-        pgie.set_property("batch-size", number_sources)
+        pgie.set_property("batch-size", batch_size)
 
     if not is_aarch64():
         # Use CUDA unified memory in the pipeline so frames
