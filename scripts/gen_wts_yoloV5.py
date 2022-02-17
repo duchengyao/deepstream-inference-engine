@@ -1,3 +1,5 @@
+"""需要复制到 yolov5 的目录里执行，详见 README.md"""
+
 import argparse
 import yaml
 import math

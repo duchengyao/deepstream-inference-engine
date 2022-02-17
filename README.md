@@ -2,6 +2,16 @@
 
 ## 0x01 Dependencies
 
+* [Triton](https://developer.nvidia.com/nvidia-triton-inference-server) 是 NVIDIA 推出的 Inference Server， 专门做 AI
+  模型的部署服务。客户端可以使用 HTTP/REST 或 gRPC 的方式来请求服务。支持各种深度学习后端，支持 k8s，和多种批处理算法。
+
+* [Deepstream](https://developer.nvidia.com/deepstream-sdk) 是 NVIDIA 开发的 SDK，适合快速开发和部署音/视频 AI 应用程序和服务。 提供多平台、高扩展性，支持 TLS
+  安全加密，可以部署在本地、边缘和云端。 参考样例可以查看 SDK
+  和 [NVIDIA IOT GitHub](https://github.com/orgs/NVIDIA-AI-IOT/repositories?q=deepstream) .
+
+* [GStreamer](https://gstreamer.freedesktop.org/) 是用来构建流媒体应用的开源多媒体框架，其目标是要简化音/视频应用程序的开发。 GStreamer 为 GNOME 桌面环境下 和
+  webkit 的多媒体框架，是 linux 官方推荐的流媒体框架，基于 GPL 协议。
+
 ### 1.1 Deepstream
 
 > 请参考 [Deepstream User Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Quickstart.html)

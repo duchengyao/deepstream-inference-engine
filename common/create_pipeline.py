@@ -16,7 +16,13 @@ TILED_OUTPUT_WIDTH = 1280
 TILED_OUTPUT_HEIGHT = 720
 
 
-def create_pipeline(args, number_sources, updsink_port_num, batch_size, config_file_path):
+def create_pipeline(batch_size,
+                    bitrate,
+                    codec,
+                    number_sources,
+                    gie,
+                    updsink_port_num,
+                    config_file_path):
     # Create gstreamer elements */
     # Create Pipeline element that will form a connection of other elements
     print("Creating Pipeline \n ")
@@ -35,7 +41,7 @@ def create_pipeline(args, number_sources, updsink_port_num, batch_size, config_f
     pipeline.add(streammux)
 
     print("Creating Pgie \n ")
-    if args.gie == "nvinfer":
+    if gie == "nvinfer":
         pgie = Gst.ElementFactory.make("nvinfer", "primary-inference")
     else:
         pgie = Gst.ElementFactory.make("nvinferserver", "primary-inference")
@@ -65,10 +71,10 @@ def create_pipeline(args, number_sources, updsink_port_num, batch_size, config_f
     )
 
     # Make the encoder
-    if args.codec == "H264":
+    if codec == "H264":
         encoder = Gst.ElementFactory.make("nvv4l2h264enc", "encoder")
         print("Creating H264 Encoder")
-    elif args.codec == "H265":
+    elif codec == "H265":
         encoder = Gst.ElementFactory.make("nvv4l2h265enc", "encoder")
         print("Creating H265 Encoder")
     else:
@@ -76,17 +82,17 @@ def create_pipeline(args, number_sources, updsink_port_num, batch_size, config_f
 
     if not encoder:
         sys.stderr.write(" Unable to create encoder")
-    encoder.set_property("bitrate", args.bitrate)
+    encoder.set_property("bitrate", bitrate)
     if is_aarch64():
         encoder.set_property("preset-level", 1)
         encoder.set_property("insert-sps-pps", 1)
         encoder.set_property("bufapi-version", 1)
 
     # Make the payload-encode video into RTP packets
-    if args.codec == "H264":
+    if codec == "H264":
         rtppay = Gst.ElementFactory.make("rtph264pay", "rtppay")
         print("Creating H264 rtppay")
-    elif args.codec == "H265":
+    elif codec == "H265":
         rtppay = Gst.ElementFactory.make("rtph265pay", "rtppay")
         print("Creating H265 rtppay")
     else:
@@ -109,7 +115,7 @@ def create_pipeline(args, number_sources, updsink_port_num, batch_size, config_f
     streammux.set_property("batch-size", batch_size)
     streammux.set_property("batched-push-timeout", 25000)
 
-    if args.gie == "nvinfer":
+    if gie == "nvinfer":
         pgie.set_property("config-file-path", config_file_path)
     else:
         assert False
