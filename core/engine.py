@@ -10,14 +10,22 @@ gi.require_version('GstRtspServer', '1.0')  # noqa: E402
 gi.require_version("GstVideo", "1.0")  # noqa: E402
 
 from gi.repository import GObject, Gst, GstRtspServer, GLib, GstVideo
-from common.ds_utils import bus_call, is_aarch64, GetFPS
+
 from common.create_pipeline import create_pipeline
 from common.gs_utils import create_source_bin
+from core.probe.phone_call_detect_probe import PhoneCallDetectProbe
 
 
-class TSIF:
+def select_model(model_name):
+    if model_name == "phone_call_detect":
+        return PhoneCallDetectProbe()
+    else:
+        assert False
+
+
+class Engine:
     def __init__(self,
-                 infer_config,
+                 model_name,
                  batch_size=16,
                  codec="H264",
                  gie="nvinfer",
@@ -25,12 +33,18 @@ class TSIF:
                  rtsp_port_num=8554):
 
         self.max_source_id = -1
-
+        model = select_model(model_name)
         GObject.threads_init()
         Gst.init(None)
         self.pipeline, self.loop, self.streammux = create_pipeline(
-            batch_size, 4000000, codec, batch_size, "nvinfer", updsink_port_num,
-            infer_config
+            batch_size,
+            4000000,
+            codec,
+            batch_size,
+            "nvinfer",
+            model.tiler_src_pad_buffer_probe,
+            updsink_port_num,
+            model.config_dir
         )
 
         # Start streaming
@@ -84,22 +98,3 @@ class TSIF:
             sys.stderr.write("Unable to create src pad bin \n")
         srcpad.link(sinkpad)
         source_bin.set_state(Gst.State.PLAYING)
-
-
-if __name__ == '__main__':
-    inputs = [
-        "rtsp://localhost:8550/stream0",
-        "rtsp://localhost:8550/stream1",
-        "rtsp://localhost:8550/stream0",
-        "rtsp://localhost:8550/stream1",
-        "rtsp://localhost:8550/stream0",
-        "rtsp://localhost:8550/stream1",
-        "rtsp://localhost:8550/stream0",
-        "rtsp://localhost:8550/stream1"
-    ]
-
-    tsif = TSIF("configs/official-yolov5n/config_infer_primary_yoloV5.txt")
-
-    tsif.start()
-    tsif.add_source(inputs[0])
-    time.sleep(100)

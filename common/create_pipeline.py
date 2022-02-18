@@ -4,9 +4,7 @@ import sys
 import pyds
 from gi.repository import GObject, Gst
 
-from .gs_utils import create_source_bin
 from .ds_utils import is_aarch64, bus_call
-from .probs import tiler_src_pad_buffer_probe
 
 frame_count = {}
 saved_count = {}
@@ -21,6 +19,7 @@ def create_pipeline(batch_size,
                     codec,
                     number_sources,
                     gie,
+                    probe,
                     updsink_port_num,
                     config_file_path):
     # Create gstreamer elements */
@@ -177,6 +176,7 @@ def create_pipeline(batch_size,
         sys.stderr.write(" Unable to get src pad \n")
     else:
         tiler_sink_pad.add_probe(Gst.PadProbeType.BUFFER,
-                                 tiler_src_pad_buffer_probe, 0)
+                                 probe,
+                                 0)
 
     return pipeline, loop, streammux

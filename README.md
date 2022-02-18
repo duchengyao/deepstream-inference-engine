@@ -84,10 +84,17 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 * 将 `utils/gen_wts_yoloV5.py` 复制到 `ultralytics/yolov5`
 * 使用 `gen_wts_yoloV5.py` 将 `pt` 转换为 `wts` & `cfg` 文件 `python3 gen_wts_yoloV5.py -w yolov5n.pt`
 
+### 1.4 gRPC
+
+* cd configs/grpc
+* python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. inference_result.proto
+* 将 `inference_result_pb2_grpc.py` 第四行改为 `from . import inference_result_pb2 as inference__result__pb2`
+
 ## 0x02 Build
 
 `CUDA_VER=11.4 make -C thirdparty/nvdsinfer_custom_impl_Yolo`
 
 ## 0x03 Quickstart
 
-* RTSP in RTSP out: `python3 tsif.py -i rtsp://xxxxx`
+* `python3 app.py`
+* 添加资源 `scripts/flask_add_source.sh`

@@ -3,12 +3,12 @@ import json
 
 from flask import Flask, request
 
-from tsif import TSIF
+from core.engine import Engine
 
-from configs import config_flask as config
+from configs import global_config
 
 app = Flask(__name__)
-tsif = TSIF("configs/official-yolov5n/config_infer_primary_yoloV5.txt")
+tsif = Engine("phone_call_detect")
 
 
 @app.route('/add_source', methods=['GET'])
@@ -40,6 +40,6 @@ if __name__ == '__main__':
 
     tsif.start()
 
-    app.run(host=config.ADDRESS,
-            port=config.PORT,
+    app.run(host=global_config.FLASK_ADDRESS,
+            port=global_config.FLASK_PORT,
             debug=args.debug)

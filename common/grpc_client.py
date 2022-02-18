@@ -13,16 +13,20 @@ class GrpcClient:
         self.stub = pb2_grpc.InferenceCheckpointServiceStub(channel)
         self.request = bp2.InferencePhoneDetectionCheckpointRequest
 
-    def send_image(self, frame_image):
+    def send_image(self, frame_image,
+                   code=1,
+                   detail="{ \"position\": [1,2,3,4] }",
+                   result="检测到有人打电话",
+                   timestamp=int(time.time())):
         _, buffer_img = cv2.imencode('.jpg', frame_image)
         img_b64 = base64.b64encode(buffer_img).decode('utf-8')
         request_curr = self.request(
-            code='1-1-1',
+            code=code,
             img=img_b64,
-            result="检测到有人打电话",
-            detail="{ \"position\": [1,2,3,4] }",
-            time=int(time.time())
-        )
+            result=result,
+            detail=detail,
+            time=timestamp)
+
         response = self.stub.phoneDetectionCheckpoint(request_curr)
         print("Get grpc response ", response)
         return response
