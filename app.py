@@ -14,20 +14,20 @@ tsif = Engine("phone_call_detect")
 @app.route('/add_source', methods=['GET'])
 def add_source():
     try:
-        source_id = request.form['ID']
+        source_id = int(request.form['ID'])
         uri = request.form['URI']
         print(uri)
-        tsif.add_source(uri)
+        tsif.add_source(uri, source_id)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
     except Exception as e:
         return json.dumps({"stat": -1, "desc": str(e)})
 
 
-@app.route('/del_source', methods=['GET'])
+@app.route('/remove_source', methods=['GET'])
 def remove_source():
     try:
-        source_id = request.form['ID']
-
+        source_id = int(request.form['ID'])
+        tsif.remove_source(source_id)
         return json.dumps({"stat": 0, "desc": "Remove source: " + str(source_id)})
     except Exception as e:
         return json.dumps({"stat": -1, "desc": str(e)})
