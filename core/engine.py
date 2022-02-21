@@ -14,6 +14,7 @@ gi.require_version("GstVideo", "1.0")  # noqa: E402
 from gi.repository import GObject, Gst, GstRtspServer, GLib, GstVideo
 
 from core.probe.phone_call_detect_probe import PhoneCallDetectProbe
+from core.probe.jam_detect_probe import JamDetectProbe
 
 frame_count = {}
 saved_count = {}
@@ -406,6 +407,8 @@ class Engine:
     def select_model(self, model_name):
         if model_name == "phone_call_detect":
             return PhoneCallDetectProbe()
+        elif model_name == "jam_detect":
+            return JamDetectProbe()
         else:
             assert False
 
