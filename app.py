@@ -16,7 +16,6 @@ def add_source():
     try:
         source_id = int(request.form['ID'])
         uri = request.form['URI']
-        print(uri)
         tsif.add_source(uri, source_id)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
     except Exception as e:
@@ -37,9 +36,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--debug", action='store_true')
     args = parser.parse_args()
-
-    tsif.start()
-
     app.run(host=global_config.FLASK_ADDRESS,
             port=global_config.FLASK_PORT,
             debug=args.debug)

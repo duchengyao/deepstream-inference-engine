@@ -3,8 +3,7 @@ import math
 import pyds
 import sys
 import time
-import _thread as thread
-
+import _thread
 import gi
 
 gi.require_version('Gst', '1.0')  # noqa: E402
@@ -38,6 +37,7 @@ class Engine:
         self.source_bin_dict = {}
 
         model = self.select_model(model_name)
+
         GObject.threads_init()
         Gst.init(None)
 
@@ -52,6 +52,9 @@ class Engine:
             model.config_dir
         )
 
+        self.start_rtsp_server(rtsp_port_num, updsink_port_num, codec)
+
+    def start_rtsp_server(self, rtsp_port_num, updsink_port_num, codec):
         # Start streaming
         server = GstRtspServer.RTSPServer.new()
         server.props.service = "%d" % rtsp_port_num
@@ -73,12 +76,12 @@ class Engine:
             % rtsp_port_num
         )
 
-        # start play back and listen to events
-        print("Starting pipeline \n")
-        self.pipeline.set_state(Gst.State.PLAYING)
-
     def add_source(self, uri_name, source_id):
         assert source_id not in self.source_bin_dict.keys(), "Source %d is used." % source_id
+        assert 0 <= source_id <= 127, "Source ID must between 0 to 127"
+
+        if len(self.source_bin_dict) == 0:
+            self.start()
 
         print("Creating source_bin ", uri_name, " \n ")
         source_bin = self.create_source_bin(source_id, uri_name)
@@ -103,14 +106,12 @@ class Engine:
 
         if state_return == Gst.StateChangeReturn.SUCCESS:
             print("STATE CHANGE SUCCESS\n")
-            source_id += 1
 
         elif state_return == Gst.StateChangeReturn.FAILURE:
             print("STATE CHANGE FAILURE\n")
 
         elif state_return == Gst.StateChangeReturn.ASYNC:
             state_return = source_bin.get_state(Gst.CLOCK_TIME_NONE)
-            source_id += 1
 
         elif state_return == Gst.StateChangeReturn.NO_PREROLL:
             print("STATE CHANGE NO PREROLL\n")
@@ -146,14 +147,14 @@ class Engine:
         t = message.type
         if t == Gst.MessageType.EOS:
             sys.stdout.write("End-of-stream\n")
-            loop.quit()
+            # TODO:loop.quit()
         elif t == Gst.MessageType.WARNING:
             err, debug = message.parse_warning()
             sys.stderr.write("Warning: %s: %s\n" % (err, debug))
         elif t == Gst.MessageType.ERROR:
             err, debug = message.parse_error()
             sys.stderr.write("Error: %s: %s\n" % (err, debug))
-            loop.quit()
+            # TODO:loop.quit()
         elif t == Gst.MessageType.ELEMENT:
             struct = message.get_structure()
             # Check for stream-eos message
@@ -163,9 +164,6 @@ class Engine:
                     # Set eos status of stream to True, to be deleted in delete-sources
                     print("Got EOS from stream %d" % stream_id)
         return True
-
-    def cleanup(self):
-        self.pipeline.set_state(Gst.State.NULL)
 
     def create_pipeline(self,
                         batch_size,
@@ -260,8 +258,8 @@ class Engine:
         sink.set_property("host", "224.224.255.255")
         sink.set_property("port", updsink_port_num)
         sink.set_property("async", False)
-        sink.set_property("sync", 1)
-        sink.set_property("qos", 0)
+        # sink.set_property("sync", 1)
+        # sink.set_property("qos", 0)
 
         pgie.set_property("config-file-path", config_file_path)
         pgie_batch_size = pgie.get_property("batch-size")
@@ -372,37 +370,31 @@ class Engine:
 
     def remove_source(self, source_id):
         assert source_id in self.source_bin_dict.keys(), "Source %d not found." % source_id
+        assert 0 <= source_id <= 127, "Source ID must between 0 to 127"
 
         # Attempt to change status of source to be released
         state_return = self.source_bin_dict[source_id].set_state(Gst.State.NULL)
 
-        if state_return == Gst.StateChangeReturn.SUCCESS:
-            print("STATE CHANGE SUCCESS\n")
+        if state_return in [Gst.StateChangeReturn.SUCCESS, Gst.StateChangeReturn.ASYNC]:
             pad_name = "sink_%u" % source_id
             print(pad_name)
             # Retrieve sink pad to be released
             sinkpad = self.streammux.get_static_pad(pad_name)
             # Send flush stop event to the sink pad, then release from the streammux
             sinkpad.send_event(Gst.Event.new_flush_stop(False))
-            self.streammux.release_request_pad(sinkpad)
-            print("STATE CHANGE SUCCESS\n")
-            # Remove the source bin from the pipeline
             self.pipeline.remove(self.source_bin_dict[source_id])
+            self.source_bin_dict.pop(source_id)
+
+            if len(self.source_bin_dict) == 0:
+                sys.stdout.write("No sink avaliable...")
+                self.stop()
+            else:
+                self.streammux.release_request_pad(sinkpad)
+                print("STATE CHANGE SUCCESS\n")
+                # Remove the source bin from the pipeline
 
         elif state_return == Gst.StateChangeReturn.FAILURE:
             print("STATE CHANGE FAILURE\n")
-
-        elif state_return == Gst.StateChangeReturn.ASYNC:
-            state_return = self.source_bin_dict[source_id].get_state(Gst.CLOCK_TIME_NONE)
-            pad_name = "sink_%u" % source_id
-            print(pad_name)
-            sinkpad = self.streammux.get_static_pad(pad_name)
-            sinkpad.send_event(Gst.Event.new_flush_stop(False))
-            self.streammux.release_request_pad(sinkpad)
-            print("STATE CHANGE ASYNC\n")
-            self.pipeline.remove(self.source_bin_dict[source_id])
-
-        self.source_bin_dict.pop(source_id)
 
     def select_model(self, model_name):
         if model_name == "phone_call_detect":
@@ -414,7 +406,22 @@ class Engine:
 
     def start(self):
         try:
-            thread.start_new_thread(self.loop.run, ())
+            sys.stdout.write("Starting tsif...")
+            _thread.start_new_thread(self.loop.run, ())
+            self.pipeline.set_state(Gst.State.PLAYING)
+            sys.stdout.write("Done.\n")
+
+        except Exception as e:
+            # TODO: log Fatal
+            print(e)
+
+    def stop(self):
+        try:
+            sys.stdout.write("Stoping tsif...")
+            _thread.start_new_thread(self.loop.quit, ())
+            self.pipeline.set_state(Gst.State.PAUSED)
+            sys.stdout.write("Done.\n")
+
         except Exception as e:
             # TODO: log Fatal
             print(e)
