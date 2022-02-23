@@ -1,9 +1,5 @@
-Flask==2.0.3
-numpy==1.22.1
-opencv_python==4.5.5.62
-pyds==0.2.0
-PyYAML==6.0
-torch==1.10.1+cu113
-utils==1.0.1
-grpcio
-grpcio-tools
+Flask>=1.0.0
+numpy>=1.17.0
+PyYAML>=5.0
+grpcio>=1.0.0
+grpcio-tools>=1.0.0
