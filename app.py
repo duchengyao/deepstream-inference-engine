@@ -11,7 +11,7 @@ app = Flask(__name__)
 tsif = Engine("phone_call_detect")
 
 
-@app.route('/add_source', methods=['GET'])
+@app.route('/add_source', methods=['POST'])
 def add_source():
     try:
         source_id = int(request.form['ID'])
@@ -22,7 +22,7 @@ def add_source():
         return json.dumps({"stat": -1, "desc": str(e)})
 
 
-@app.route('/remove_source', methods=['GET'])
+@app.route('/remove_source', methods=['DELETE'])
 def remove_source():
     try:
         source_id = int(request.form['ID'])
