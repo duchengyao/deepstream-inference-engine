@@ -1,14 +1,13 @@
 import cv2
 
 
-def draw_bounding_boxes(image, obj_meta, confidence, pgie_classes_str):
+def draw_bounding_boxes(image, rect_params, class_id, confidence, pgie_classes_str):
     confidence = '{0:.2f}'.format(confidence)
-    rect_params = obj_meta.rect_params
     top = int(rect_params.top)
     left = int(rect_params.left)
     width = int(rect_params.width)
     height = int(rect_params.height)
-    obj_name = pgie_classes_str[obj_meta.class_id]
+    obj_name = pgie_classes_str[class_id]
 
     color = (0, 0, 255, 0)
     image = cv2.rectangle(image,
