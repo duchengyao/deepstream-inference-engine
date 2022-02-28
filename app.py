@@ -8,13 +8,24 @@ from core.engine import Engine
 from configs import global_config
 
 app = Flask(__name__)
-tsif = Engine("phone_call_detect")
+
+str2id = {}
 
 
 @app.route('/add_source', methods=['POST'])
 def add_source():
     try:
-        source_id = int(request.form['ID'])
+        device_id = request.form['device_id']
+        assert device_id not in str2id.keys(), "Duplicate ID detected."
+        source_id = None
+        for i in range(128):
+            if i not in str2id.values():
+                source_id = i
+                str2id[device_id] = source_id
+                break
+        assert source_id is not None, "Exceeding the resource limit, " \
+                                      "the number of devices must be less than 128."
+
         uri = request.form['URI']
         tsif.add_source(uri, source_id)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
@@ -25,7 +36,10 @@ def add_source():
 @app.route('/remove_source', methods=['DELETE'])
 def remove_source():
     try:
-        source_id = int(request.form['ID'])
+        device_id = request.form['device_id']
+        assert device_id in str2id.keys(), "Cannot find ID."
+        source_id = str2id[device_id]
+        str2id.pop(device_id)
         tsif.remove_source(source_id)
         return json.dumps({"stat": 0, "desc": "Remove source: " + str(source_id)})
     except Exception as e:
@@ -34,8 +48,12 @@ def remove_source():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument("algo", type=str, help="{phone_call_detect,jam_detect}")
     parser.add_argument("-d", "--debug", action='store_true')
     args = parser.parse_args()
+
+    tsif = Engine(args.algo)
+
     app.run(host=global_config.FLASK_ADDRESS,
             port=global_config.FLASK_PORT,
             debug=args.debug)
