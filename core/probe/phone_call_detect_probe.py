@@ -7,7 +7,7 @@ from core.probe.probe_base import ProbeBase
 class PhoneCallDetectProbe(ProbeBase):
     def __init__(self):
         super(PhoneCallDetectProbe, self).__init__(
-            "configs/official-yolov5n/config_infer_primary_yoloV5.txt")
+            "configs/phone-call-detect/config_infer_primary_yoloV5.txt")
 
         self.pgie_class_id_person = 0
         self.pgie_class_id_call = 1

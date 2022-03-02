@@ -1,6 +1,7 @@
 ## gen_wts_yoloV5.py
 
-> 将 yolo 的 pt 转换成 wts 和 cfg，需要配合原始的 yolo 工程使用。
+> 将 yolo 的 pt 转换成 wts 和 cfg，需要配合原始的 yolo 工程使用，
+> 代码来自 [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) 。
 > 
 > **NOTE**: For YOLOv5 P6 or custom models, check the gen_wts_yoloV5.py args 
 > and use them according to your model.

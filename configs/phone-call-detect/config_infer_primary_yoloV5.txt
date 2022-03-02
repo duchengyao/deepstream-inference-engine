@@ -2,10 +2,11 @@
 gpu-id=0
 net-scale-factor=0.0039215697906911373
 
+
 # 0=RGB, 1=BGR, 2=GRAYSCALE
 model-color-format=0
 # CFG
-custom-network-config=../configs/phone-call-detect/phone-call-detect.cfg
+custom-network-config=configs/phone-call-detect/phone-call-detect.cfg
 # WTS
 model-file=phone-call-detect.wts
 # Generated TensorRT model (will be created if it doesn't exist)
