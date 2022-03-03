@@ -8,3 +8,5 @@ RUN apt install -y git python-dev python3 python3-pip python3.6-dev python3.8-de
     libgstreamer-plugins-base1.0-dev gir1.2-gst-rtsp-server-1.0
 # 更新 pip
 RUN pip3 install --upgrade pip
+# 安装依赖 module
+RUN python3 -m pip install Flask PyYAML grpcio grpcio-tools -i https://pypi.tuna.tsinghua.edu.cn/simple/

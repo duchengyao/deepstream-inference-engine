@@ -35,8 +35,7 @@ class Engine:
 
         self.source_id_used_list = []
         self.source_bin_dict = {}
-
-        model = self.select_model(model_name)
+        self.model = self.select_model(model_name)
 
         GObject.threads_init()
         Gst.init(None)
@@ -47,9 +46,9 @@ class Engine:
             codec,
             batch_size,
             "nvinfer",
-            model.tiler_src_pad_buffer_probe,
+            self.model.tiler_src_pad_buffer_probe,
             updsink_port_num,
-            model.config_dir
+            self.model.config_dir
         )
 
         self.start_rtsp_server(rtsp_port_num, updsink_port_num, codec)
@@ -76,7 +75,9 @@ class Engine:
             % rtsp_port_num
         )
 
-    def add_source(self, uri_name, source_id):
+    def add_source(self, uri_name, source_id, grpc_address):
+
+        self.model.grpc_client_init(grpc_address)
         assert source_id not in self.source_bin_dict.keys(), "Source %d is used." % source_id
         assert 0 <= source_id <= 127, "Source ID must between 0 to 127"
 

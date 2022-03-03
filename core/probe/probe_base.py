@@ -4,13 +4,9 @@ import numpy as np
 from gi.repository import Gst
 
 from common.grpc_client import GrpcClient
-from configs import global_config
-
-
 class ProbeBase:
     def __init__(self, config_dir) -> None:
         self.config_dir = config_dir
-        self.grpc_client = GrpcClient(global_config.GRPC_ADDRESS)
 
     def tiler_src_pad_buffer_probe(self, pad, info, u_data):
         """
@@ -80,6 +76,9 @@ class ProbeBase:
         object.rect_params
         """
         pass
+
+    def grpc_client_init(self, grpc_address = "0.0.0.0:1111"):
+        self.grpc_client = GrpcClient(grpc_address)
 
     def send_msg(self, frame):
         try:

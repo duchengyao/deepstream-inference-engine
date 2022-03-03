@@ -26,8 +26,10 @@ def add_source():
         assert source_id is not None, "Exceeding the resource limit, " \
                                       "the number of devices must be less than 128."
 
-        uri = request.form['URI']
-        tsif.add_source(uri, source_id)
+        uri = request.form['rtsp_url']
+        grpc_address = request.form['address']
+
+        tsif.add_source(uri, source_id, grpc_address)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
     except Exception as e:
         return json.dumps({"stat": -1, "desc": str(e)})

@@ -14,7 +14,7 @@ class GrpcClient:
         self.request = bp2.InferencePhoneDetectionCheckpointRequest
 
     def send_image(self, frame_image,
-                   code=1,
+                   code="1",
                    detail="{ \"position\": [1,2,3,4] }",
                    result="检测到有人打电话",
                    timestamp=int(time.time())):
