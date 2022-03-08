@@ -101,6 +101,43 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 
 ## 0x03 Quickstart
 
-* `python3 app.py`
-* 添加资源 `scripts/flask_add_source.sh`
-* 展示结果 `ffplay rtsp://localhost:8554/ds-test`
+> TODO: 重构这段 readme
+
+### 3.1 启动 tsif
+
+`python3 app.py [phone_call_detect|jam_detect] [-d|--rtsp_port_num=8553]`
+
+如： `python3 app.py jam_detect --rtsp_port_num=8553`
+  
+### 3.2 添加资源
+
+> 向 tsif 添加需要推理的rtsp流
+
+向tsif发送post请求，默认地址是 http://127.0.0.1:19878/add_source，参数如下：
+
+```
+device_id: str, 设备id 
+rtsp_url: str, 需要推理的流
+address: str, grpc_address (TODO: 改名字）
+```
+
+如：
+
+```
+curl -X POST \
+-F device_id=12 \
+-F rtsp_url=http://10.11.12.102:83/openUrl/YioPqRq/live.m3u8 \
+-F address=10.5.24.131:50051 \
+http://127.0.0.1:19878/add_source
+```
+
+另外，提供了一个角本来添加资源 `bash scripts/flask_add_source.sh`
+
+### 3.3 删除资源
+
+原理跟添加资源相似，可参考 `scripts/flask_remove_source.sh`
+
+
+### 3.3 展示结果
+
+可以通过 ffplay vlc 等媒体播放器查看实时的推理结果，默认 ip 为 `rtsp://localhost:8554/ds-test`

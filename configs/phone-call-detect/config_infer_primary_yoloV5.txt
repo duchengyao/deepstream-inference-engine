@@ -10,11 +10,11 @@ custom-network-config=configs/phone-call-detect/phone-call-detect.cfg
 # WTS
 model-file=phone-call-detect.wts
 # Generated TensorRT model (will be created if it doesn't exist)
-model-engine-file=model_b1_gpu0_fp32.engine
+model-engine-file=model_b16_gpu0_fp32.engine
 # Model labels file
 labelfile-path=labels.txt
 # Batch size
-batch-size=1
+batch-size=16
 # 0=FP32, 1=INT8, 2=FP16 mode
 network-mode=0
 # Number of classes in label file
