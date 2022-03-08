@@ -52,10 +52,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("algo", type=str, help="{phone_call_detect,jam_detect}")
     parser.add_argument("-d", "--debug", action='store_true')
+    parser.add_argument("--rtsp_port_num",type=int, default=8554, help='core.engine.rtsp_port_num')
     args = parser.parse_args()
 
     tsif = Engine(args.algo)
 
     app.run(host=global_config.FLASK_ADDRESS,
             port=global_config.FLASK_PORT,
-            debug=args.debug)
+            debug=args.debug,
+            rtsp_port_num=engine.rtsp_port_num)
