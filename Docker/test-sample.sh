@@ -18,3 +18,6 @@ cmake ..
 make -j$(nproc)
 
 pip3 install ./pyds-1.1.0-py3-none*.whl
+
+cd ../../..
+mv deepstream_python_apps  /opt/nvidia/deepstream/deepstream-6.0/samples/
