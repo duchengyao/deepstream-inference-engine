@@ -77,8 +77,8 @@ class ProbeBase:
         """
         pass
 
-    def grpc_client_init(self, grpc_address = "0.0.0.0:1111"):
-        self.grpc_client = GrpcClient(grpc_address)
+    def grpc_client_init(self, grpc_address = "0.0.0.0:1111", code = "1"):
+        self.grpc_client = GrpcClient(grpc_address, code)
 
     def send_msg(self, frame):
         try:

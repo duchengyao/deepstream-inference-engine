@@ -16,23 +16,25 @@ docker build -t your-image-name:image-tag .
 ```
 **b. 启动并进入容器**
 ```
-docker run -itd --gpus all --name your-container-name -v /your/path-to/tsif/:/tsif --net host your-image-name:your-image-tag
+docker run -itd --gpus all --name your-container-name -v /your/path-to/tsif/:/tsif/ --net host your-image-name:your-image-tag
 docker exec -it your-container-name bash
 
 ```
-## 0x02 Quickstart
-> 拉取官方样例进行测试 [Deepstream Python apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps.git)
-
-### 2.1 一键拉取并完成 python binding
+**c. 一键拉取并完成 python binding**
+> 参考官方样例 [Deepstream Python apps](https://github.com/NVIDIA-AI-IOT/deepstream_python_apps.git)
 ```
+cd /tsif
 bash ./test-sample.sh
 ```
-### 2.2 启动样例 rtsp 服务
+**完成以上步骤后，可以通过以下 Quickstart 运行 nvidia 官方测试样例进行测试，或者直接参考主目录 Readme，从 1.3 YOLO v5 继续执行跑通 tsif**
+
+## 0x02 Quickstart
+### 2.1 启动样例 rtsp 服务
 ```
-cd deepstream_python_apps/apps/deepstream-rtsp-in-rtsp-out
+cd /opt/nvidia/deepstream/deepstream-6.0/samples/deepstream_python_apps/apps/deepstream-rtsp-in-rtsp-out
 python3 deepstream_test1_rtsp_in_rtsp_out.py -i rtsp://xxxx
 ```
-### 2.3 本地查看
+### 2.2 本地查看
 * 使用 VLC 或 ffmpeg 通过网络串流展示.
 
 

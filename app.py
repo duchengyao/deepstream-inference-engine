@@ -28,7 +28,7 @@ def add_source():
         uri = request.form['rtsp_url']
         grpc_address = request.form['grpc_address']
 
-        tsif.add_source(uri, source_id, grpc_address)
+        tsif.add_source(uri, source_id, grpc_address, device_id)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
     except Exception as e:
         return json.dumps({"stat": -1, "desc": str(e)})
