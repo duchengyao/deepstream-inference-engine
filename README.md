@@ -105,9 +105,9 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 
 ### 3.1 启动 tsif
 
-`python3 app.py [phone_call_detect|jam_detect] [-d|--rtsp_port_num=8553]`
+`python3 app.py [phone_call_detect|jam_detect] [-d|--rtsp_port_num=8553|--flask_address=0.0.0.0|flask_port=8554]`
 
-如： `python3 app.py jam_detect --rtsp_port_num=8553`
+如： `python3 app.py jam_detect --flask_port=8553`
   
 ### 3.2 添加资源
 
@@ -127,7 +127,7 @@ address: str, grpc_address (TODO: 改名字）
 curl -X POST \
 -F device_id=12 \
 -F rtsp_url=http://10.11.12.102:83/openUrl/YioPqRq/live.m3u8 \
--F address=10.5.24.131:50051 \
+-F grpc_address=10.5.24.131:50051 \
 http://127.0.0.1:19878/add_source
 ```
 

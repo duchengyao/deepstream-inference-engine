@@ -17,7 +17,7 @@ class GrpcClient:
                    code="1",
                    detail="{ \"position\": [1,2,3,4] }",
                    result="检测到有人打电话",
-                   timestamp=int(time.time())):
+                   timestamp=None):
         _, buffer_img = cv2.imencode('.jpg', frame_image)
         img_b64 = base64.b64encode(buffer_img).decode('utf-8')
         request_curr = self.request(
@@ -25,7 +25,7 @@ class GrpcClient:
             img=img_b64,
             result=result,
             detail=detail,
-            time=timestamp)
+            time=timestamp is None and int(time.time()) or timestamp)
 
         response = self.stub.phoneDetectionCheckpoint(request_curr)
         print("Get grpc response ", response)

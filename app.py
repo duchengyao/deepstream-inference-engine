@@ -5,8 +5,6 @@ from flask import Flask, request
 
 from core.engine import Engine
 
-from configs import global_config
-
 app = Flask(__name__)
 
 str2id = {}
@@ -15,6 +13,7 @@ str2id = {}
 @app.route('/add_source', methods=['POST'])
 def add_source():
     try:
+        # TODO: 如果添加资源失败，deviceID也会被占用
         device_id = request.form['device_id']
         assert device_id not in str2id.keys(), "Duplicate ID detected."
         source_id = None
@@ -27,7 +26,7 @@ def add_source():
                                       "the number of devices must be less than 128."
 
         uri = request.form['rtsp_url']
-        grpc_address = request.form['address']
+        grpc_address = request.form['grpc_address']
 
         tsif.add_source(uri, source_id, grpc_address)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
@@ -50,14 +49,14 @@ def remove_source():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("algo", type=str, help="{phone_call_detect,jam_detect}")
+    parser.add_argument("algo", type=str, help="{phone_call_detect, jam_detect}")
     parser.add_argument("-d", "--debug", action='store_true')
-    parser.add_argument("--rtsp_port_num",type=int, default=8554, help='core.engine.rtsp_port_num')
+    parser.add_argument("--flask_address", type=str, default="0.0.0.0")
+    parser.add_argument("--flask_port", type=int, default=19878)
     args = parser.parse_args()
 
     tsif = Engine(args.algo)
 
-    app.run(host=global_config.FLASK_ADDRESS,
-            port=global_config.FLASK_PORT,
-            debug=args.debug,
-            rtsp_port_num=engine.rtsp_port_num)
+    app.run(host=args.flask_address,
+            port=args.flask_port,
+            debug=args.debug)
