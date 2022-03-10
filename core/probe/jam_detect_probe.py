@@ -21,7 +21,7 @@ class JamDetectProbe(ProbeBase):
             self.pgie_class_id_truck: 0
         }
 
-    def frame_postprocess(self, frame_meta, object_list):
+    def frame_postprocess(self, pad, frame_meta, object_list):
         frame_image = frame_meta["image"]
         if frame_meta["frame_num"] % 30 == 0:
             for obj in object_list:
@@ -37,9 +37,9 @@ class JamDetectProbe(ProbeBase):
         # send a frame by grpc
         if sum(self.obj_counter.values()) > 10:
             frame_image = cv2.cvtColor(frame_image, cv2.COLOR_RGBA2BGR)
-            self.send_msg(frame_image)
+            self.send_msg(frame_image, frame_meta["source_id"])
 
-        if frame_meta["frame_num"] % 30 == 0:
+        if frame_meta["frame_num"] % 100 == 0:
             print("Frame Number=", frame_meta["frame_num"],
                   "pad_index=", frame_meta["pad_index"],
                   "source_id=", frame_meta["source_id"],

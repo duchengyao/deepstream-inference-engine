@@ -17,7 +17,7 @@ class PhoneCallDetectProbe(ProbeBase):
             self.pgie_class_id_call: 0,
         }
 
-    def frame_postprocess(self, frame_meta, object_list):
+    def frame_postprocess(self, pad, frame_meta, object_list):
         frame_image = frame_meta["image"]
         frame_number = frame_meta["frame_num"]
         for obj in object_list:
@@ -31,11 +31,11 @@ class PhoneCallDetectProbe(ProbeBase):
                                                   obj.confidence,
                                                   ['正常', '接电话'])
                 # covert the array into cv2 default color format
-                self.send_msg(frame_image)
+                self.send_msg(frame_image, frame_meta["source_id"])
 
                 self.obj_counter[obj.class_id] += 1
 
-        if frame_number % 30 == 0:
+        if frame_number % 100 == 0:
             print("Frame Number=", frame_number,
                   "pad_index=", frame_meta["pad_index"],
                   "source_id=", frame_meta["source_id"],

@@ -75,9 +75,9 @@ class Engine:
             % rtsp_port_num
         )
 
-    def add_source(self, uri_name, source_id, grpc_address, code):
+    def add_source(self, uri_name, source_id, grpc_address):
 
-        self.model.grpc_client_init(grpc_address, code)
+        self.model.grpc_client_init(grpc_address)
         assert source_id not in self.source_bin_dict.keys(), "Source %d is used." % source_id
         assert 0 <= source_id <= 127, "Source ID must between 0 to 127"
 

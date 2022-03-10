@@ -4,6 +4,9 @@ import numpy as np
 from gi.repository import Gst
 
 from common.grpc_client import GrpcClient
+from common.stupid_global_var import source2device, device2source
+
+
 class ProbeBase:
     def __init__(self, config_dir) -> None:
         self.config_dir = config_dir
@@ -60,7 +63,7 @@ class ProbeBase:
                 except StopIteration:
                     break
 
-            self.frame_postprocess(frame_meta_with_image, object_list)
+            self.frame_postprocess(pad, frame_meta_with_image, object_list)
 
             try:
                 l_frame = l_frame.next
@@ -69,7 +72,7 @@ class ProbeBase:
 
         return Gst.PadProbeReturn.OK
 
-    def frame_postprocess(self, frame_meta, object_list):
+    def frame_postprocess(self, pad, frame_meta, object_list):
         """
         object.class_id
         object.confidence
@@ -77,14 +80,13 @@ class ProbeBase:
         """
         pass
 
-    def grpc_client_init(self, grpc_address = "0.0.0.0:1111", code = "1"):
-        self.grpc_client = GrpcClient(grpc_address, code)
+    def grpc_client_init(self, grpc_address="0.0.0.0:1111"):
+        self.grpc_client = GrpcClient(grpc_address)
 
-    def send_msg(self, frame):
+    def send_msg(self, frame, source_id):
         try:
-            # cv2.imwrite("a.png", frame_copy)
-            self.grpc_client.send_image(frame)
-            print("send image.")
+            self.grpc_client.send_image(frame, device_id=source2device[source_id])
+            print("send image. device_id= ", source2device[source_id])
 
         except Exception as e:
             print("grpc failed: ", e)
