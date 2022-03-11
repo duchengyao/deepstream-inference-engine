@@ -29,7 +29,7 @@ class PhoneCallDetectProbe(ProbeBase):
                                                   obj.rect_params,
                                                   obj.class_id,
                                                   obj.confidence,
-                                                  ['正常', '接电话'])
+                                                  ['nocall', 'call'])
                 # covert the array into cv2 default color format
                 self.send_msg(frame_image, frame_meta["source_id"])
 

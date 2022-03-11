@@ -54,9 +54,10 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--debug", action='store_true')
     parser.add_argument("--flask_address", type=str, default="0.0.0.0")
     parser.add_argument("--flask_port", type=int, default=19878)
+    parser.add_argument("--rtsp_port", type=int, default=8554)
     args = parser.parse_args()
 
-    tsif = Engine(args.algo)
+    tsif = Engine(args.algo, rtsp_port_num=args.rtsp_port)
 
     app.run(host=args.flask_address,
             port=args.flask_port,
