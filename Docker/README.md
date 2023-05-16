@@ -1,4 +1,4 @@
-# Tianshu Inference Engine Docker
+# Inference Engine Docker
 
 ## 0x01 Dependencies
 

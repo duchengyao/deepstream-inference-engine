@@ -1,4 +1,6 @@
-# Tianshu Inference Engine
+# Inference Engine
+
+基于 Deepstream 的深度学习多路视频推理平台。
 
 ## 0x01 Dependencies
 
