@@ -407,7 +407,7 @@ class Engine:
 
     def start(self):
         try:
-            sys.stdout.write("Starting tsif...")
+            sys.stdout.write("Starting inference engine...")
             _thread.start_new_thread(self.loop.run, ())
             self.pipeline.set_state(Gst.State.PLAYING)
             sys.stdout.write("Done.\n")
@@ -418,7 +418,7 @@ class Engine:
 
     def stop(self):
         try:
-            sys.stdout.write("Stoping tsif...")
+            sys.stdout.write("Stoping inference engine...")
             _thread.start_new_thread(self.loop.quit, ())
             self.pipeline.set_state(Gst.State.PAUSED)
             sys.stdout.write("Done.\n")

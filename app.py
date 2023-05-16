@@ -28,7 +28,7 @@ def add_source():
         uri = request.form['rtsp_url']
         grpc_address = request.form['grpc_address']
 
-        tsif.add_source(uri, source_id, grpc_address)
+        ie.add_source(uri, source_id, grpc_address)
         return json.dumps({"stat": 0, "desc": "Add new source: " + str(source_id)})
     except Exception as e:
         return json.dumps({"stat": -1, "desc": str(e)})
@@ -42,7 +42,7 @@ def remove_source():
         source_id = device2source[device_id]
         device2source.pop(device_id)
         update_device_dict()
-        tsif.remove_source(source_id)
+        ie.remove_source(source_id)
         return json.dumps({"stat": 0, "desc": "Remove source: " + str(source_id)})
     except Exception as e:
         return json.dumps({"stat": -1, "desc": str(e)})
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument("--rtsp_port", type=int, default=8554)
     args = parser.parse_args()
 
-    tsif = Engine(args.algo, rtsp_port_num=args.rtsp_port)
+    ie = Engine(args.algo, rtsp_port_num=args.rtsp_port)
 
     app.run(host=args.flask_address,
             port=args.flask_port,

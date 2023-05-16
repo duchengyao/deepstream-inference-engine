@@ -105,7 +105,7 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
 
 > TODO: 重构这段 readme
 
-### 3.1 启动 tsif
+### 3.1 启动 inference engine
 
 `python3 app.py [phone_call_detect|jam_detect] [-d|--rtsp_port_num=8553|--flask_address=0.0.0.0|flask_port=8554]`
 
@@ -113,9 +113,9 @@ pip3 install ./pyds-1.1.0-py3-none*.whl
   
 ### 3.2 添加资源
 
-> 向 tsif 添加需要推理的rtsp流
+> 向 inference engine 添加需要推理的rtsp流
 
-向tsif发送post请求，默认地址是 http://127.0.0.1:19878/add_source，参数如下：
+向 inference engine 发送 post 请求，默认地址是 http://127.0.0.1:19878/add_source，参数如下：
 
 ```
 device_id: str, 设备id 
